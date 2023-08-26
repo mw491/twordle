@@ -12,6 +12,7 @@ const LETTERS_ROW2: [&str; 9] = ["a", "s", "d", "f", "g", "h", "j", "k", "l"];
 const LETTERS_ROW3: [&str; 7] = ["z", "x", "c", "v", "b", "n", "m"];
 
 pub struct Twordle {
+    title: String,
     wordle: String,
     solved: bool,
     game_started: bool,
@@ -24,6 +25,17 @@ pub struct Twordle {
     gray_letters: Vec<String>,
 }
 
+#[derive(Clone, Eq, PartialEq, Properties)]
+pub struct Props {
+    pub game_type: GameType,
+}
+
+#[derive(Clone, Eq, PartialEq)]
+pub enum GameType {
+    Daily,
+    Unlimited,
+}
+
 pub enum Msg {
     AddLetter(char),
     DeleteLetter,
@@ -32,11 +44,18 @@ pub enum Msg {
 
 impl Component for Twordle {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_ctx: &Context<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
+        let mut wordle = pick_word::gen();
+        let mut title = "Twordle".to_string();
+        if ctx.props().game_type == GameType::Unlimited {
+            wordle = pick_word::unlimited();
+            title = title + " Unlimited";
+        }
         Self {
-            wordle: pick_word::gen(),
+            title,
+            wordle,
             solved: false,
             game_started: false,
             time_started: Utc::now(),
@@ -125,7 +144,7 @@ impl Component for Twordle {
         html! {
             <main class="h-[100dvh] max-h-[100dvh] py-3 text-5xl font-mono bg-neutral-900 text-white flex flex-col justify-between items-center touch-none">
                 <div class="h-[10dvh]">
-                    {"Twordle"}
+                    {&self.title}
                 </div>
                 <div class="flex flex-col gap-3 h-[70dvh] bg-neutral-800/25 p-5 rounded-md">
                     {
